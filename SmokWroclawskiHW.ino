@@ -1,5 +1,9 @@
 #include <BLE_API.h>
 #include "bmp180.hpp"
+#include "DHT.h"
+
+#define DHTPIN 2
+#define DHTTYPE DHT22
 
 BLE ble;
 Timeout timeout;
@@ -23,7 +27,9 @@ GattCharacteristic * uartChars[] = {&characteristic1, &characteristic2};
 GattService          uartService(service1_uuid, uartChars, sizeof(uartChars) / sizeof(GattCharacteristic *));
 
 bmp_state bmp;
-double temperature = 0.0, pressure = 0.0;
+double temperature = 0.0, pressure = 0.0, humidity = 0.0;
+
+DHT dht(DHTPIN, DHTTYPE);
 
 Ticker ticker;
 
@@ -44,7 +50,7 @@ void gattServerWriteCallBack(const GattWriteCallbackParams *Handler) {
     
     int16_t f_temperature = temperature * 10;
     uint16_t f_pressure = pressure;
-    uint16_t f_humidity = 25;
+    uint16_t f_humidity = humidity;
     uint16_t f_pm25 = 36.5 * 10;
     uint16_t f_pm10 = 420.2 * 10;
     
@@ -54,6 +60,18 @@ void gattServerWriteCallBack(const GattWriteCallbackParams *Handler) {
     memcpy(&frame[4], &f_humidity, sizeof(f_humidity));
     memcpy(&frame[6], &f_pm25, sizeof(f_pm25));
     memcpy(&frame[8], &f_pm10, sizeof(f_pm10));
+
+    Serial.println(frame[0]);
+    Serial.println(frame[1]);
+    Serial.println(frame[2]);
+    Serial.println(frame[3]);
+    Serial.println(frame[4]);
+    Serial.println(frame[5]);
+    Serial.println(frame[6]);
+    Serial.println(frame[7]);
+    Serial.println(frame[8]);
+    Serial.println(frame[9]);
+    Serial.println();
     
     ble.updateCharacteristicValue(characteristic2.getValueAttribute().getHandle(), frame, 10);
   }
@@ -65,6 +83,7 @@ void ticker_handle()
   bmp_read_temp_and_pressure(&bmp);
   temperature = bmp_get_temperature(&bmp);
   pressure = bmp_get_pressure(&bmp);
+  humidity = (double) dht.readHumidity();
 }
 
 void setup() {
@@ -89,6 +108,8 @@ void setup() {
 
   bmp = bmp_init();
   bmp_read_compensation_data(&bmp);
+  
+  dht.begin();
 
   ticker.attach(ticker_handle, 30);
 }
