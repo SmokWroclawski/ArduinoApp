@@ -1,5 +1,6 @@
 #include <BLE_API.h>
 #include "bmp180.hpp"
+#include "pms.hpp"
 #include "DHT.h"
 
 #define DHTPIN 2
@@ -27,7 +28,8 @@ GattCharacteristic * uartChars[] = {&characteristic1, &characteristic2};
 GattService          uartService(service1_uuid, uartChars, sizeof(uartChars) / sizeof(GattCharacteristic *));
 
 bmp_state bmp;
-double temperature = 0.0, pressure = 0.0, humidity = 0.0;
+pms_state pms;
+double temperature = 0.0, pressure = 0.0, humidity = 0.0, pm25 = 0.0, pm10 = 0.0;
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -51,8 +53,8 @@ void gattServerWriteCallBack(const GattWriteCallbackParams *Handler) {
     int16_t f_temperature = temperature * 10;
     uint16_t f_pressure = pressure;
     uint16_t f_humidity = humidity;
-    uint16_t f_pm25 = 36.5 * 10;
-    uint16_t f_pm10 = 420.2 * 10;
+    uint16_t f_pm25 = pm25 * 10;
+    uint16_t f_pm10 = pm10 * 10;
     
     uint8_t frame[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     memcpy(&frame[0], &f_temperature, sizeof(f_temperature));
@@ -84,6 +86,17 @@ void ticker_handle()
   temperature = bmp_get_temperature(&bmp);
   pressure = bmp_get_pressure(&bmp);
   humidity = (double) dht.readHumidity();
+  pm25 = pms.pm25;
+  pm10 = pms.pm10;
+}
+
+void uart_handle(uint32_t id, SerialIrq event) {
+  if(event == RxIrq) {
+    while(Serial.available()) {
+      uint8_t recv = Serial.read();
+	    pms_recv_byte(&pms, recv);
+    }
+  }
 }
 
 void setup() {
@@ -108,6 +121,8 @@ void setup() {
 
   bmp = bmp_init();
   bmp_read_compensation_data(&bmp);
+  
+  pms = pms_init();
   
   dht.begin();
 
