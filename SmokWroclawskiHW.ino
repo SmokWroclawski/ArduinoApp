@@ -101,6 +101,7 @@ void uart_handle(uint32_t id, SerialIrq event) {
 
 void setup() {
   Serial.begin(9600);
+  Serial.attach(uart_handle);
   
   ble.init();
   ble.onDisconnection(disconnectionCallBack);
@@ -126,7 +127,7 @@ void setup() {
   
   dht.begin();
 
-  ticker.attach(ticker_handle, 30);
+  ticker.attach(ticker_handle, 5);
 }
 
 void loop() {

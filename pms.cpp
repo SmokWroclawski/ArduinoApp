@@ -1,4 +1,4 @@
-#include "pms.h"
+#include "pms.hpp"
 
 struct pms_state pms_init() {
 	struct pms_state state;
@@ -20,6 +20,11 @@ void pms_recv_byte(struct pms_state * state, uint8_t recv_byte) {
 		state->buffer[state->buffer_position - 2] = recv_byte;
 		state->buffer_position++;
 		if (state->buffer_position == 30) {
+     //Serial.println(state->buffer[10]);
+      //Serial.println(state->buffer[11]);
+      //Serial.println(state->buffer[12]);
+      //Serial.println(state->buffer[13]);
+      //Serial.println();
 			pms_process_frame(state);
 			state->buffer_position = 0;
 		}
@@ -29,6 +34,6 @@ void pms_recv_byte(struct pms_state * state, uint8_t recv_byte) {
 }
 
 void pms_process_frame(struct pms_state * state) {
-	state->pm25 = state->buffer[4] * 256 + state->buffer[5];
-	state->pm10 = state->buffer[6] * 256 + state->buffer[7];
+	state->pm25 = state->buffer[10] * 256 + state->buffer[5];
+	state->pm10 = state->buffer[12] * 256 + state->buffer[7];
 }

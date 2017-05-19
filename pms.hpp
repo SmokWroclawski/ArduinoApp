@@ -1,6 +1,7 @@
 #ifndef pms_header
 #define pms_header
 
+#include <Arduino.h>
 #include <stdint.h>
 
 struct pms_state {

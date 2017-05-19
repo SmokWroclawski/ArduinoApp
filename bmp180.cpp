@@ -76,7 +76,7 @@ void bmp_read_temp_and_pressure(bmp_state * state)
 double bmp_get_temperature(bmp_state * state)
 {
   int32_t X1, X2, T;
-  X1 = (state->UT - state->AC6) * state->AC5 / 32768;
+  X1 = ((state->UT - state->AC6) * state->AC5) / 32768;
   X2 = state->MC * 2048 / (X1 + state->MD);
   state->B5 = X1 + X2;
   T = (state->B5 + 8) / 16.0;
