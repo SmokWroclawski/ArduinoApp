@@ -74,12 +74,14 @@ void gattServerWriteCallBack(const GattWriteCallbackParams *Handler) {
     Serial.println(frame[8]);
     Serial.println(frame[9]);
     Serial.println();
-    
-    ble.updateCharacteristicValue(characteristic2.getValueAttribute().getHandle(), frame, 10);
+
+    if (f_temperature > -500 && f_temperature < 600 && f_pressure > 900 && f_pressure < 1100
+        && f_humidity >= 0 && f_humidity < 100 && f_pm25 >= 0 && f_pm10 >= 0)
+      ble.updateCharacteristicValue(characteristic2.getValueAttribute().getHandle(), frame, 10);
   }
 }
 
-// Funkcja wykonywana w przerwaniu, raz na 30 sekund
+// Function executed in interrupt once 30 sec
 void ticker_handle()
 {
   bmp_read_temp_and_pressure(&bmp);
